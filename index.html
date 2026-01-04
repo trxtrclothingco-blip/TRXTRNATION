@@ -38,7 +38,7 @@
       <!-- Verification Form (hidden by default) -->
       <form id="verify-form" class="auth-form" style="display: none;">
         <h3>Verify Email</h3>
-        <p>A verification code has been "sent" to your email (simulated: check alert).</p>
+        <p>A verification code has been sent to your email.</p>
         <input type="text" id="verify-code" placeholder="Enter verification code" required>
         <button type="submit" class="btn glow">Verify</button>
       </form>
@@ -60,58 +60,7 @@
   </main>
 
   <script>
-    // Simulate a simple user database in localStorage
-    function getUsers() {
-      return JSON.parse(localStorage.getItem('users')) || [];
-    }
-
-    function saveUsers(users) {
-      localStorage.setItem('users', JSON.stringify(users));
-    }
-
-    function getCurrentUser() {
-      return localStorage.getItem('currentUser');
-    }
-
-    function setCurrentUser(username) {
-      localStorage.setItem('currentUser', username);
-    }
-
-    function clearCurrentUser() {
-      localStorage.removeItem('currentUser');
-    }
-
-    // Find user by username
-    function findUserByUsername(username) {
-      const users = getUsers();
-      return users.find(user => user.username === username);
-    }
-
-    // Find user by email
-    function findUserByEmail(email) {
-      const users = getUsers();
-      return users.find(user => user.email === email);
-    }
-
-    // Update user's paid status
-    function updateUserPaid(username) {
-      const users = getUsers();
-      const userIndex = users.findIndex(user => user.username === username);
-      if (userIndex !== -1) {
-        users[userIndex].paid = true;
-        saveUsers(users);
-      }
-    }
-
-    // Update user's verified status
-    function updateUserVerified(username) {
-      const users = getUsers();
-      const userIndex = users.findIndex(user => user.username === username);
-      if (userIndex !== -1) {
-        users[userIndex].verified = true;
-        saveUsers(users);
-      }
-    }
+    const API_BASE = 'https://your-production-domain.com/api'; // Replace with your production server URL
 
     // Toggle between login and signup forms
     document.getElementById('switch-to-signup').addEventListener('click', (e) => {
@@ -126,104 +75,121 @@
       document.getElementById('login-form').style.display = 'block';
     });
 
-    // Temporary storage for pending user and verification code
-    let pendingUser = null;
-    let verificationCode = null;
+    let pendingEmail = null;
 
     // Handle signup
-    document.getElementById('signup-form').addEventListener('submit', (e) => {
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = document.getElementById('signup-username').value;
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       
-      const users = getUsers();
-      if (findUserByUsername(username) || findUserByEmail(email)) {
-        alert('Username or email already exists!');
-        return;
+      try {
+        const res = await fetch(`${API_BASE}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          pendingEmail = email;
+          alert('Verification code sent to your email.');
+          document.getElementById('signup-form').style.display = 'none';
+          document.getElementById('verify-form').style.display = 'block';
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
-      
-      // Generate a 6-digit verification code
-      verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      alert(`Verification code sent to ${email}: ${verificationCode} (Simulated - in real app, use email API)`);
-      
-      // Store pending user
-      pendingUser = { username, email, password, verified: false, paid: false };
-      
-      // Hide signup, show verify
-      document.getElementById('signup-form').style.display = 'none';
-      document.getElementById('verify-form').style.display = 'block';
     });
 
     // Handle verification
-    document.getElementById('verify-form').addEventListener('submit', (e) => {
+    document.getElementById('verify-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const enteredCode = document.getElementById('verify-code').value;
+      const code = document.getElementById('verify-code').value;
+      const email = pendingEmail;
       
-      if (enteredCode === verificationCode) {
-        // Save the user
-        const users = getUsers();
-        users.push(pendingUser);
-        saveUsers(users);
-        alert('Email verified! Please login with your email and password.');
-        
-        // Clear pending
-        pendingUser = null;
-        verificationCode = null;
-        
-        // Switch to login
-        document.getElementById('verify-form').style.display = 'none';
-        document.getElementById('login-form').style.display = 'block';
-      } else {
-        alert('Invalid verification code!');
+      if (!email) {
+        alert('No pending verification.');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${API_BASE}/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Email verified! Please login.');
+          pendingEmail = null;
+          document.getElementById('verify-form').style.display = 'none';
+          document.getElementById('login-form').style.display = 'block';
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
     });
 
     // Handle login
-    document.getElementById('login-form').addEventListener('submit', (e) => {
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
       
-      const user = findUserByEmail(email);
-      if (!user || user.password !== password) {
-        alert('Invalid email or password!');
-        return;
+      try {
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', data.username);
+          checkAccess(data.paid);
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
-      
-      if (!user.verified) {
-        alert('Please verify your email first!');
-        return;
-      }
-      
-      setCurrentUser(user.username);
-      checkAccess();
     });
 
-    // Simulate payment
-    function simulatePayment() {
-      alert('Payment successful! (Simulated)');
-      const username = getCurrentUser();
-      if (username) {
-        updateUserPaid(username);
-        enterCommunity();
+    // Simulate payment (in prod, integrate real payment like Stripe)
+    async function simulatePayment() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/pay`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Payment successful!');
+          enterCommunity();
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
     }
 
-    // Check access after login
-    function checkAccess() {
-      const username = getCurrentUser();
-      if (!username) return;
-      
-      const user = findUserByUsername(username);
-      if (!user) {
-        clearCurrentUser();
-        return;
-      }
-      
+    // Check access
+    function checkAccess(paid) {
       document.getElementById('auth-section').style.display = 'none';
       
-      if (user.paid) {
+      if (paid) {
         enterCommunity();
       } else {
         document.getElementById('payment-section').style.display = 'block';
@@ -240,14 +206,24 @@
     document.getElementById('pay-button').addEventListener('click', simulatePayment);
 
     // On load, check if already logged in
-    window.addEventListener('load', () => {
-      const currentUser = getCurrentUser();
-      if (currentUser) {
-        const user = findUserByUsername(currentUser);
-        if (user && user.verified) {
-          checkAccess();
-        } else {
-          clearCurrentUser();
+    window.addEventListener('load', async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE}/check`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem('username', data.username);
+            checkAccess(data.paid);
+          } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+          }
+        } catch (err) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
         }
       }
     });
