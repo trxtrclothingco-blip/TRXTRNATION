@@ -14,15 +14,7 @@
   <main class="container">
     <section class="auth-section" id="auth-section">
       <h2>Welcome to TwistedTRXTR’s</h2>
-      <p>Welcome to TRXTRnation! 🚀🔥
-
-You’ve just entered the home of the Twisted TRXTRs—an exclusive, rebellious, and game-changing NFT community. 😈🎭
-
-Here, early adopters shape the future, unlock next-level perks, and rep the most twisted digital collectibles in the game. Whether you’re here for the art, the community, or the exclusive drops, you’re now part of the movement.
-
-💬 Engage. Collect. Dominate.
-🔥 Stay twisted. Stay TRXTR.
-All we ask is you help us grow by paying £1 to enter our community (one-time fee).</p>
+      <p>Welcome to TRXTRnation! 🚀🔥</p>
       
       <!-- Login Form -->
       <form id="login-form" class="auth-form">
@@ -42,48 +34,26 @@ All we ask is you help us grow by paying £1 to enter our community (one-time fe
         <button type="submit" class="btn glow">Create Account</button>
         <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
       </form>
-      
-      <!-- Verification Form -->
-      <form id="verify-form" class="auth-form" style="display: none;">
-        <h3>Verify Email</h3>
-        <p>A verification code has been sent to your email.</p>
-        <input type="text" id="verify-code" placeholder="Enter verification code" required>
-        <button type="submit" class="btn glow">Verify</button>
-      </form>
-    </section>
-    
-    <!-- Payment Section -->
-    <section id="payment-section" style="display: none;">
-      <h2>One-Time Payment</h2>
-      <p>Pay £1 to access the community and exclusive NFT collectibles.</p>
-      <button class="btn glow" id="pay-button">Pay £1 to Enter</button>
-    </section>
-    
-    <!-- Community Section -->
-    <section id="community-section" style="display: none;">
-      <h2>Welcome Inside!</h2>
-      <p>Exclusive NFT collectibles await...</p>
     </section>
   </main>
 
   <script>
-    const API_BASE = 'https://trxtrnation-backend.onrender.com';
+    const API_BASE = 'https://trxtrnation-backend.onrender.com'; // Your backend URL
 
-    document.getElementById('switch-to-signup').addEventListener('click', (e) => {
+    // Toggle forms
+    document.getElementById('switch-to-signup').addEventListener('click', e => {
       e.preventDefault();
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('signup-form').style.display = 'block';
     });
-
-    document.getElementById('switch-to-login').addEventListener('click', (e) => {
+    document.getElementById('switch-to-login').addEventListener('click', e => {
       e.preventDefault();
       document.getElementById('signup-form').style.display = 'none';
       document.getElementById('login-form').style.display = 'block';
     });
 
-    let pendingEmail = null;
-
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    // Signup
+    document.getElementById('signup-form').addEventListener('submit', async e => {
       e.preventDefault();
       const username = document.getElementById('signup-username').value;
       const email = document.getElementById('signup-email').value;
@@ -98,10 +68,9 @@ All we ask is you help us grow by paying £1 to enter our community (one-time fe
         const data = await res.json();
 
         if (res.ok) {
-          pendingEmail = email;
-          alert('Verification code sent to your email.');
-          document.getElementById('signup-form').style.display = 'none';
-          document.getElementById('verify-form').style.display = 'block';
+          alert('Account created! Redirecting to dashboard...');
+          localStorage.setItem('token', data.token);
+          window.location.href = '/dashboard.html'; // Redirect to dashboard
         } else {
           alert(data.error);
         }
@@ -110,31 +79,8 @@ All we ask is you help us grow by paying £1 to enter our community (one-time fe
       }
     });
 
-    document.getElementById('verify-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const code = document.getElementById('verify-code').value;
-
-      try {
-        const res = await fetch(`${API_BASE}/verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: pendingEmail, code })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          alert('Email verified! Please login.');
-          document.getElementById('verify-form').style.display = 'none';
-          document.getElementById('login-form').style.display = 'block';
-        } else {
-          alert(data.error);
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    });
-
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    // Login
+    document.getElementById('login-form').addEventListener('submit', async e => {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
@@ -149,7 +95,8 @@ All we ask is you help us grow by paying £1 to enter our community (one-time fe
 
         if (res.ok) {
           localStorage.setItem('token', data.token);
-          checkAccess(data.paid);
+          alert('Login successful! Redirecting to dashboard...');
+          window.location.href = '/dashboard.html';
         } else {
           alert(data.error);
         }
@@ -158,29 +105,26 @@ All we ask is you help us grow by paying £1 to enter our community (one-time fe
       }
     });
 
-    async function simulatePayment() {
+    // Auto-login if token exists
+    window.addEventListener('load', async () => {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/pay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/check`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          window.location.href = '/dashboard.html';
+        } else {
+          localStorage.removeItem('token');
         }
-      });
-      if (res.ok) enterCommunity();
-    }
-
-    function checkAccess(paid) {
-      document.getElementById('auth-section').style.display = 'none';
-      paid ? enterCommunity() : document.getElementById('payment-section').style.display = 'block';
-    }
-
-    function enterCommunity() {
-      document.getElementById('payment-section').style.display = 'none';
-      document.getElementById('community-section').style.display = 'block';
-    }
-
-    document.getElementById('pay-button').addEventListener('click', simulatePayment);
+      } catch (err) {
+        localStorage.removeItem('token');
+      }
+    });
   </script>
 </body>
 </html>
