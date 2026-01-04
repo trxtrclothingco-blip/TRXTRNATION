@@ -31,3 +31,13 @@
       </button>
       <p id="wallet-status" style="margin-top:1rem;">Wallet: Not connected</p>
     </div>
+  </div>
+
+  <script>
+    function simulateWalletConnect() {
+      document.getElementById('wallet-status').innerText = "Wallet: Connected (Phantom - AbCd...XyZ)";
+      alert("Phantom Wallet Connected!");
+    }
+  </script>
+</body>
+</html>
