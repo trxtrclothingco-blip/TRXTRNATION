@@ -12,14 +12,178 @@
   </header>
 
   <main class="container">
-    <section class="landing-section">
+    <section class="auth-section" id="auth-section">
       <h2>Welcome to TwistedTRXTR’s</h2>
-      <p>All we ask is you help us grow by paying £1 to enter our community.</p>
-      <button class="btn glow" onclick="simulatePayment()">Pay £1 to Enter</button>
-      <p>Exclusive NFT collectibles await inside...</p>
+      <p>All we ask is you help us grow by paying £1 to enter our community (one-time fee).</p>
+      
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form">
+        <h3>Login</h3>
+        <input type="text" id="login-username" placeholder="Username" required>
+        <input type="password" id="login-password" placeholder="Password" required>
+        <button type="submit" class="btn glow">Login</button>
+        <p>Don't have an account? <a href="#" id="switch-to-signup">Create one</a></p>
+      </form>
+      
+      <!-- Signup Form (hidden by default) -->
+      <form id="signup-form" class="auth-form" style="display: none;">
+        <h3>Create Account</h3>
+        <input type="text" id="signup-username" placeholder="Username" required>
+        <input type="password" id="signup-password" placeholder="Password" required>
+        <button type="submit" class="btn glow">Create Account</button>
+        <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
+      </form>
+    </section>
+    
+    <!-- Payment Section (hidden until needed) -->
+    <section id="payment-section" style="display: none;">
+      <h2>One-Time Payment</h2>
+      <p>Pay £1 to access the community and exclusive NFT collectibles.</p>
+      <button class="btn glow" id="pay-button">Pay £1 to Enter</button>
+    </section>
+    
+    <!-- Community Section (hidden until accessed) -->
+    <section id="community-section" style="display: none;">
+      <h2>Welcome Inside!</h2>
+      <p>Exclusive NFT collectibles await...</p>
+      <!-- Add more community content here as needed -->
     </section>
   </main>
 
-  <script src="main.js"></script>
+  <script>
+    // Simulate a simple user database in localStorage
+    function getUsers() {
+      return JSON.parse(localStorage.getItem('users')) || [];
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    function getCurrentUser() {
+      return localStorage.getItem('currentUser');
+    }
+
+    function setCurrentUser(username) {
+      localStorage.setItem('currentUser', username);
+    }
+
+    function clearCurrentUser() {
+      localStorage.removeItem('currentUser');
+    }
+
+    // Find user by username
+    function findUser(username) {
+      const users = getUsers();
+      return users.find(user => user.username === username);
+    }
+
+    // Update user's paid status
+    function updateUserPaid(username) {
+      const users = getUsers();
+      const userIndex = users.findIndex(user => user.username === username);
+      if (userIndex !== -1) {
+        users[userIndex].paid = true;
+        saveUsers(users);
+      }
+    }
+
+    // Toggle between login and signup forms
+    document.getElementById('switch-to-signup').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('signup-form').style.display = 'block';
+    });
+
+    document.getElementById('switch-to-login').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('login-form').style.display = 'block';
+    });
+
+    // Handle signup
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('signup-username').value;
+      const password = document.getElementById('signup-password').value;
+      
+      const users = getUsers();
+      if (findUser(username)) {
+        alert('Username already exists!');
+        return;
+      }
+      
+      users.push({ username, password, paid: false });
+      saveUsers(users);
+      alert('Account created! Please login.');
+      
+      // Switch to login
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('login-form').style.display = 'block';
+    });
+
+    // Handle login
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      
+      const user = findUser(username);
+      if (!user || user.password !== password) {
+        alert('Invalid username or password!');
+        return;
+      }
+      
+      setCurrentUser(username);
+      checkAccess();
+    });
+
+    // Simulate payment
+    function simulatePayment() {
+      alert('Payment successful! (Simulated)');
+      const username = getCurrentUser();
+      if (username) {
+        updateUserPaid(username);
+        enterCommunity();
+      }
+    }
+
+    // Check access after login
+    function checkAccess() {
+      const username = getCurrentUser();
+      if (!username) return;
+      
+      const user = findUser(username);
+      if (!user) {
+        clearCurrentUser();
+        return;
+      }
+      
+      document.getElementById('auth-section').style.display = 'none';
+      
+      if (user.paid) {
+        enterCommunity();
+      } else {
+        document.getElementById('payment-section').style.display = 'block';
+      }
+    }
+
+    // Enter the community
+    function enterCommunity() {
+      document.getElementById('payment-section').style.display = 'none';
+      document.getElementById('community-section').style.display = 'block';
+    }
+
+    // Attach payment button listener
+    document.getElementById('pay-button').addEventListener('click', simulatePayment);
+
+    // On load, check if already logged in
+    window.addEventListener('load', () => {
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        checkAccess();
+      }
+    });
+  </script>
 </body>
 </html>
