@@ -19,7 +19,7 @@
       <!-- Login Form -->
       <form id="login-form" class="auth-form">
         <h3>Login</h3>
-        <input type="text" id="login-username" placeholder="Username" required>
+        <input type="email" id="login-email" placeholder="Email" required>
         <input type="password" id="login-password" placeholder="Password" required>
         <button type="submit" class="btn glow">Login</button>
         <p>Don't have an account? <a href="#" id="switch-to-signup">Create one</a></p>
@@ -29,9 +29,18 @@
       <form id="signup-form" class="auth-form" style="display: none;">
         <h3>Create Account</h3>
         <input type="text" id="signup-username" placeholder="Username" required>
+        <input type="email" id="signup-email" placeholder="Email" required>
         <input type="password" id="signup-password" placeholder="Password" required>
         <button type="submit" class="btn glow">Create Account</button>
         <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
+      </form>
+      
+      <!-- Verification Form (hidden by default) -->
+      <form id="verify-form" class="auth-form" style="display: none;">
+        <h3>Verify Email</h3>
+        <p>A verification code has been "sent" to your email (simulated: check alert).</p>
+        <input type="text" id="verify-code" placeholder="Enter verification code" required>
+        <button type="submit" class="btn glow">Verify</button>
       </form>
     </section>
     
@@ -73,9 +82,15 @@
     }
 
     // Find user by username
-    function findUser(username) {
+    function findUserByUsername(username) {
       const users = getUsers();
       return users.find(user => user.username === username);
+    }
+
+    // Find user by email
+    function findUserByEmail(email) {
+      const users = getUsers();
+      return users.find(user => user.email === email);
     }
 
     // Update user's paid status
@@ -84,6 +99,16 @@
       const userIndex = users.findIndex(user => user.username === username);
       if (userIndex !== -1) {
         users[userIndex].paid = true;
+        saveUsers(users);
+      }
+    }
+
+    // Update user's verified status
+    function updateUserVerified(username) {
+      const users = getUsers();
+      const userIndex = users.findIndex(user => user.username === username);
+      if (userIndex !== -1) {
+        users[userIndex].verified = true;
         saveUsers(users);
       }
     }
@@ -101,40 +126,77 @@
       document.getElementById('login-form').style.display = 'block';
     });
 
+    // Temporary storage for pending user and verification code
+    let pendingUser = null;
+    let verificationCode = null;
+
     // Handle signup
     document.getElementById('signup-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const username = document.getElementById('signup-username').value;
+      const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       
       const users = getUsers();
-      if (findUser(username)) {
-        alert('Username already exists!');
+      if (findUserByUsername(username) || findUserByEmail(email)) {
+        alert('Username or email already exists!');
         return;
       }
       
-      users.push({ username, password, paid: false });
-      saveUsers(users);
-      alert('Account created! Please login.');
+      // Generate a 6-digit verification code
+      verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      alert(`Verification code sent to ${email}: ${verificationCode} (Simulated - in real app, use email API)`);
       
-      // Switch to login
+      // Store pending user
+      pendingUser = { username, email, password, verified: false, paid: false };
+      
+      // Hide signup, show verify
       document.getElementById('signup-form').style.display = 'none';
-      document.getElementById('login-form').style.display = 'block';
+      document.getElementById('verify-form').style.display = 'block';
+    });
+
+    // Handle verification
+    document.getElementById('verify-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enteredCode = document.getElementById('verify-code').value;
+      
+      if (enteredCode === verificationCode) {
+        // Save the user
+        const users = getUsers();
+        users.push(pendingUser);
+        saveUsers(users);
+        alert('Email verified! Please login with your email and password.');
+        
+        // Clear pending
+        pendingUser = null;
+        verificationCode = null;
+        
+        // Switch to login
+        document.getElementById('verify-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+      } else {
+        alert('Invalid verification code!');
+      }
     });
 
     // Handle login
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const username = document.getElementById('login-username').value;
+      const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
       
-      const user = findUser(username);
+      const user = findUserByEmail(email);
       if (!user || user.password !== password) {
-        alert('Invalid username or password!');
+        alert('Invalid email or password!');
         return;
       }
       
-      setCurrentUser(username);
+      if (!user.verified) {
+        alert('Please verify your email first!');
+        return;
+      }
+      
+      setCurrentUser(user.username);
       checkAccess();
     });
 
@@ -153,7 +215,7 @@
       const username = getCurrentUser();
       if (!username) return;
       
-      const user = findUser(username);
+      const user = findUserByUsername(username);
       if (!user) {
         clearCurrentUser();
         return;
@@ -181,7 +243,12 @@
     window.addEventListener('load', () => {
       const currentUser = getCurrentUser();
       if (currentUser) {
-        checkAccess();
+        const user = findUserByUsername(currentUser);
+        if (user && user.verified) {
+          checkAccess();
+        } else {
+          clearCurrentUser();
+        }
       }
     });
   </script>
