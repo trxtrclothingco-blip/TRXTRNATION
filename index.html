@@ -3,136 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRXTRNATION | Enter the Community</title>
+  <title>TRXTR Nation</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>TRXTRNATION</h1>
-  </header>
 
-  <main class="container">
-    <section class="auth-section" id="auth-section">
-      <h2>Welcome to TwistedTRXTR’s</h2>
-      <p>Welcome to TRXTRnation! 🚀🔥</p>
-      
-      <!-- Login Form -->
-      <form id="login-form" class="auth-form">
-        <h3>Login</h3>
-        <input type="email" id="login-email" placeholder="Email" required>
-        <input type="password" id="login-password" placeholder="Password" required>
-        <button type="submit" class="btn glow">Login</button>
-        <p>Don't have an account? <a href="#" id="switch-to-signup">Create one</a></p>
-      </form>
-      
-      <!-- Signup Form -->
-      <form id="signup-form" class="auth-form" style="display: none;">
-        <h3>Create Account</h3>
-        <input type="text" id="signup-username" placeholder="Username" required>
-        <input type="email" id="signup-email" placeholder="Email" required>
-        <input type="password" id="signup-password" placeholder="Password" required>
-        <button type="submit" class="btn glow">Create Account</button>
-        <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
-      </form>
-    </section>
-  </main>
+<header>
+  <h1>TRXTR Nation</h1>
+</header>
 
-  <script>
-    const API_BASE = 'https://trxtrnation-backend.onrender.com'; // Your backend URL
+<main class="container">
+  <section class="auth-section">
 
-    // Toggle between login and signup forms
-    document.getElementById('switch-to-signup').addEventListener('click', e => {
-      e.preventDefault();
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('signup-form').style.display = 'block';
-    });
+    <!-- LOGIN -->
+    <form id="login-form">
+      <h2>Login</h2>
+      <input type="email" id="login-email" placeholder="Email" required>
+      <input type="password" id="login-password" placeholder="Password" required>
+      <button type="submit">Login</button>
+      <p>No account? <a href="#" id="to-signup">Create one</a></p>
+    </form>
 
-    document.getElementById('switch-to-login').addEventListener('click', e => {
-      e.preventDefault();
-      document.getElementById('signup-form').style.display = 'none';
-      document.getElementById('login-form').style.display = 'block';
-    });
+    <!-- SIGNUP -->
+    <form id="signup-form" style="display:none;">
+      <h2>Create Account</h2>
+      <input type="text" id="signup-username" placeholder="Username" required>
+      <input type="email" id="signup-email" placeholder="Email" required>
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <button type="submit">Create Account</button>
+      <p>Have an account? <a href="#" id="to-login">Login</a></p>
+    </form>
 
-    // Signup
-    document.getElementById('signup-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const username = document.getElementById('signup-username').value;
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
+  </section>
+</main>
 
-      try {
-        const res = await fetch(`${API_BASE}/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password })
-        });
-        const data = await res.json();
+<script>
+const API = "https://trxtrnation-backend.onrender.com";
 
-        if (res.ok) {
-          // Save token and username locally
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('username', data.username);
+// toggle
+document.getElementById("to-signup").onclick = e => {
+  e.preventDefault();
+  loginForm.style.display = "none";
+  signupForm.style.display = "block";
+};
+document.getElementById("to-login").onclick = e => {
+  e.preventDefault();
+  signupForm.style.display = "none";
+  loginForm.style.display = "block";
+};
 
-          // Redirect to dashboard
-          window.location.href = 'dashboard.html';
-        } else {
-          alert(data.error);
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    });
+const loginForm = document.getElementById("login-form");
+const signupForm = document.getElementById("signup-form");
 
-    // Login
-    document.getElementById('login-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
+// signup
+signupForm.onsubmit = async e => {
+  e.preventDefault();
+  const body = {
+    username: signupForm[0].value,
+    email: signupForm[1].value,
+    password: signupForm[2].value
+  };
 
-      try {
-        const res = await fetch(`${API_BASE}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
+  const res = await fetch(`${API}/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
 
-        if (res.ok) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('username', data.username);
+  const data = await res.json();
+  if (!res.ok) return alert(data.error);
 
-          // Redirect to dashboard
-          window.location.href = 'dashboard.html';
-        } else {
-          alert(data.error);
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    });
+  localStorage.setItem("token", data.token);
+  window.location.href = "dashboard.html";
+};
 
-    // Auto-login if token exists
-    window.addEventListener('load', async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+// login
+loginForm.onsubmit = async e => {
+  e.preventDefault();
+  const body = {
+    email: loginForm[0].value,
+    password: loginForm[1].value
+  };
 
-      try {
-        const res = await fetch(`${API_BASE}/check`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
+  const res = await fetch(`${API}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
 
-        if (res.ok) {
-          window.location.href = 'dashboard.html';
-        } else {
-          localStorage.removeItem('token');
-          localStorage.removeItem('username');
-        }
-      } catch (err) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-      }
-    });
-  </script>
+  const data = await res.json();
+  if (!res.ok) return alert(data.error);
+
+  localStorage.setItem("token", data.token);
+  window.location.href = "dashboard.html";
+};
+
+// auto login
+(async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const res = await fetch(`${API}/check`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (res.ok) window.location.href = "dashboard.html";
+})();
+</script>
+
 </body>
 </html>
