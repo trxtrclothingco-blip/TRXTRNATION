@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard | TwistedTRXTR’s</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@phantom/browser-sdk/dist/index.min.js"></script>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 </head>
 <body>
   <header>
@@ -28,7 +30,7 @@
         <textarea id="profile-bio" placeholder="Your Bio"></textarea>
         <button class="btn" onclick="saveProfile()">Save Profile</button>
       </div>
-      <button class="btn wallet-btn" onclick="simulateWalletConnect()">Connect Phantom Wallet</button>
+      <button class="btn wallet-btn" onclick="connectWallet()">Connect Phantom Wallet</button>
       <p id="wallet-status">Wallet: Not connected</p>
     </section>
   </main>
