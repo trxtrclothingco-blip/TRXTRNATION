@@ -18,25 +18,29 @@
     <a href="marketplace.html">Marketplace</a>
   </nav>
 
-  <div class="container">
-    <h2>My Featured NFTs (Visible on Public Profile)</h2>
-    <div class="grid">
+  <main class="container">
+    <h2>My Featured NFTs</h2>
+    <p>Select to feature on your public profile.</p>
+    <div class="grid nft-grid">
       <div class="card nft-card">
-        <img src="https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=122103250208606378" alt="TwistedTRXTR NFT">
+        <img src="https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=122103250208606378" alt="NFT">
         <p>#001 - Cyber Orb</p>
-        <input type="checkbox" checked> Feature on Profile
+        <label>Feature: <input type="checkbox" checked onchange="saveFeaturedNFTs()"></label>
       </div>
       <div class="card nft-card">
-        <img src="https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=10161884375909817" alt="TwistedTRXTR NFT">
+        <img src="https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=10161884375909817" alt="NFT">
         <p>#002 - Neon Glitch</p>
-        <input type="checkbox"> Feature on Profile
+        <label>Feature: <input type="checkbox" onchange="saveFeaturedNFTs()"></label>
       </div>
       <div class="card nft-card">
-        <img src="https://thumbs.dreamstime.com/b/being-unable-to-escape-digital-glitch-lines-squares-twisting-turning-infinite-loop-created-generative-ai-274876863.jpg" alt="TwistedTRXTR NFT">
+        <img src="https://thumbs.dreamstime.com/b/being-unable-to-escape-digital-glitch-lines-squares-twisting-turning-infinite-loop-created-generative-ai-274876863.jpg" alt="NFT">
         <p>#003 - Twisted Loop</p>
-        <input type="checkbox" checked> Feature on Profile
+        <label>Feature: <input type="checkbox" checked onchange="saveFeaturedNFTs()"></label>
       </div>
+      <!-- Add more NFT cards as needed -->
     </div>
-  </div>
+  </main>
+
+  <script src="main.js"></script>
 </body>
 </html>
