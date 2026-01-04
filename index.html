@@ -22,7 +22,7 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
 
 💬 Engage. Collect. Dominate.
 🔥 Stay twisted. Stay TRXTR.
-        All we ask is you help us grow by paying £1 to enter our community (one-time fee).</p>
+All we ask is you help us grow by paying £1 to enter our community (one-time fee).</p>
       
       <!-- Login Form -->
       <form id="login-form" class="auth-form">
@@ -33,7 +33,7 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
         <p>Don't have an account? <a href="#" id="switch-to-signup">Create one</a></p>
       </form>
       
-      <!-- Signup Form (hidden by default) -->
+      <!-- Signup Form -->
       <form id="signup-form" class="auth-form" style="display: none;">
         <h3>Create Account</h3>
         <input type="text" id="signup-username" placeholder="Username" required>
@@ -43,7 +43,7 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
         <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
       </form>
       
-      <!-- Verification Form (hidden by default) -->
+      <!-- Verification Form -->
       <form id="verify-form" class="auth-form" style="display: none;">
         <h3>Verify Email</h3>
         <p>A verification code has been sent to your email.</p>
@@ -52,25 +52,23 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
       </form>
     </section>
     
-    <!-- Payment Section (hidden until needed) -->
+    <!-- Payment Section -->
     <section id="payment-section" style="display: none;">
       <h2>One-Time Payment</h2>
       <p>Pay £1 to access the community and exclusive NFT collectibles.</p>
       <button class="btn glow" id="pay-button">Pay £1 to Enter</button>
     </section>
     
-    <!-- Community Section (hidden until accessed) -->
+    <!-- Community Section -->
     <section id="community-section" style="display: none;">
       <h2>Welcome Inside!</h2>
       <p>Exclusive NFT collectibles await...</p>
-      <!-- Add more community content here as needed -->
     </section>
   </main>
 
   <script>
-    const API_BASE = 'http://localhost:3000'; // Replace with your production server URL
+    const API_BASE = 'https://trxtrnation-backend.onrender.com';
 
-    // Toggle between login and signup forms
     document.getElementById('switch-to-signup').addEventListener('click', (e) => {
       e.preventDefault();
       document.getElementById('login-form').style.display = 'none';
@@ -85,13 +83,12 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
 
     let pendingEmail = null;
 
-    // Handle signup
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = document.getElementById('signup-username').value;
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
-      
+
       try {
         const res = await fetch(`${API_BASE}/signup`, {
           method: 'POST',
@@ -99,6 +96,7 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
           body: JSON.stringify({ username, email, password })
         });
         const data = await res.json();
+
         if (res.ok) {
           pendingEmail = email;
           alert('Verification code sent to your email.');
@@ -112,27 +110,20 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
       }
     });
 
-    // Handle verification
     document.getElementById('verify-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const code = document.getElementById('verify-code').value;
-      const email = pendingEmail;
-      
-      if (!email) {
-        alert('No pending verification.');
-        return;
-      }
-      
+
       try {
         const res = await fetch(`${API_BASE}/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, code })
+          body: JSON.stringify({ email: pendingEmail, code })
         });
         const data = await res.json();
+
         if (res.ok) {
           alert('Email verified! Please login.');
-          pendingEmail = null;
           document.getElementById('verify-form').style.display = 'none';
           document.getElementById('login-form').style.display = 'block';
         } else {
@@ -143,12 +134,11 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
       }
     });
 
-    // Handle login
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
-      
+
       try {
         const res = await fetch(`${API_BASE}/login`, {
           method: 'POST',
@@ -156,9 +146,9 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
           body: JSON.stringify({ email, password })
         });
         const data = await res.json();
+
         if (res.ok) {
           localStorage.setItem('token', data.token);
-          localStorage.setItem('username', data.username);
           checkAccess(data.paid);
         } else {
           alert(data.error);
@@ -168,73 +158,29 @@ Here, early adopters shape the future, unlock next-level perks, and rep the most
       }
     });
 
-    // Simulate payment (in prod, integrate real payment like Stripe)
     async function simulatePayment() {
       const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      try {
-        const res = await fetch(`${API_BASE}/pay`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = await res.json();
-        if (res.ok) {
-          alert('Payment successful!');
-          enterCommunity();
-        } else {
-          alert(data.error);
+      const res = await fetch(`${API_BASE}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      });
+      if (res.ok) enterCommunity();
     }
 
-    // Check access
     function checkAccess(paid) {
       document.getElementById('auth-section').style.display = 'none';
-      
-      if (paid) {
-        enterCommunity();
-      } else {
-        document.getElementById('payment-section').style.display = 'block';
-      }
+      paid ? enterCommunity() : document.getElementById('payment-section').style.display = 'block';
     }
 
-    // Enter the community
     function enterCommunity() {
       document.getElementById('payment-section').style.display = 'none';
       document.getElementById('community-section').style.display = 'block';
     }
 
-    // Attach payment button listener
     document.getElementById('pay-button').addEventListener('click', simulatePayment);
-
-    // On load, check if already logged in
-    window.addEventListener('load', async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const res = await fetch(`${API_BASE}/check`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            localStorage.setItem('username', data.username);
-            checkAccess(data.paid);
-          } else {
-            localStorage.removeItem('token');
-            localStorage.removeItem('username');
-          }
-        } catch (err) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('username');
-        }
-      }
-    });
   </script>
 </body>
-</html
+</html>
