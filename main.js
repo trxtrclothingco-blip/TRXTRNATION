@@ -1,6 +1,12 @@
-// main.js - Shared JavaScript for functionality simulations
+// main.js - Shared JavaScript for functionality
 
-// Simulate Payment (from landing)
+// Solana Integration Setup
+const sdk = new BrowserSDK({
+  providers: ["injected"],
+  addressTypes: ["solana"]
+});
+
+// Simulate Payment (from landing) - Still simulated as it's fiat, use Stripe for real £1
 function simulatePayment() {
   alert("Payment successful! Redirecting to dashboard...");
   window.location.href = "dashboard.html";
@@ -39,15 +45,22 @@ window.addEventListener('load', function() {
   }
 });
 
-// Simulate Wallet Connect
-function simulateWalletConnect() {
-  document.getElementById('wallet-status').innerText = "Wallet: Connected (Phantom - AbCd...XyZ)";
-  alert("Phantom Wallet Connected!");
+// Real Wallet Connect
+async function connectWallet() {
+  try {
+    const { addresses } = await sdk.connect({ provider: "injected" });
+    const address = addresses[0].address;
+    document.getElementById('wallet-status').innerText = `Wallet: Connected (${address.slice(0,6)}...${address.slice(-4)})`;
+    localStorage.setItem('walletAddress', address);
+    alert("Phantom Wallet Connected!");
+  } catch (err) {
+    alert("Connection failed: " + err.message);
+  }
 }
 
 // Featured NFTs (my-nfts)
 function saveFeaturedNFTs() {
-  // Simulate saving checked states (could use localStorage for persistence)
+  // Simulate saving (use localStorage or backend for real)
   alert('Featured NFTs updated!');
 }
 
@@ -88,9 +101,37 @@ function addMessageToFeed(message, imageUrl) {
   feed.scrollTop = feed.scrollHeight;
 }
 
-// Simulate Buy (marketplace)
-function simulateBuy(nftId) {
-  if (confirm(`Buy NFT #${nftId} via Solana?`)) {
-    alert(`NFT #${nftId} purchased! Check your wallet.`);
+// Real Buy NFT (marketplace) - Sends SOL to a recipient (replace with your wallet key)
+// For real NFT transfer, integrate Metaplex for mint/transfer
+async function buyNFT(nftId, priceInSol) {
+  const walletAddress = localStorage.getItem('walletAddress');
+  if (!walletAddress) {
+    alert('Connect wallet first!');
+    return;
+  }
+
+  const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
+  const from = new solanaWeb3.PublicKey(walletAddress);
+  const to = new solanaWeb3.PublicKey('YOUR_RECIPIENT_PUBLIC_KEY_HERE'); // REPLACE WITH YOUR SOLANA WALLET ADDRESS
+
+  const lamports = priceInSol * solanaWeb3.LAMPORTS_PER_SOL;
+
+  const transaction = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: from,
+      toPubkey: to,
+      lamports,
+    })
+  );
+
+  const { blockhash } = await connection.getLatestBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = from;
+
+  try {
+    const result = await sdk.solana.signAndSendTransaction(transaction, { connection });
+    alert(`NFT #${nftId} purchased! Tx Signature: ${result.signature}`);
+  } catch (err) {
+    alert("Purchase failed: " + err.message);
   }
 }
