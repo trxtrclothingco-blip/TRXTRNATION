@@ -8,7 +8,7 @@
 </head>
 <body>
   <header>
-    <h1>TwistedTRXTR’s Dashboard</h1>
+    <h1>TwistedTRXTR’s</h1>
   </header>
 
   <nav>
@@ -18,26 +18,21 @@
     <a href="marketplace.html">Marketplace</a>
   </nav>
 
-  <div class="container">
-    <div class="card">
+  <main class="container">
+    <section class="card profile-card">
       <h2>Your Profile</h2>
-      <img src="https://via.placeholder.com/150" alt="Profile Pic" style="border-radius: 50%; width: 150px;">
-      <input type="text" placeholder="Your Name" style="width:100%; padding:1rem; margin:1rem 0; background:rgba(0,0,0,0.5); border:none; color:white;">
-      <textarea placeholder="Your Bio" style="width:100%; height:100px; padding:1rem; background:rgba(0,0,0,0.5); border:none; color:white;"></textarea>
-      <button class="btn" onclick="alert('Profile Saved!')">Save Profile</button>
+      <div class="profile-edit">
+        <img id="profile-pic" src="https://via.placeholder.com/150" alt="Profile Pic">
+        <input type="file" id="profile-upload" accept="image/*" onchange="updateProfilePic()">
+        <input type="text" id="profile-name" placeholder="Your Name">
+        <textarea id="profile-bio" placeholder="Your Bio"></textarea>
+        <button class="btn" onclick="saveProfile()">Save Profile</button>
+      </div>
+      <button class="btn wallet-btn" onclick="simulateWalletConnect()">Connect Phantom Wallet</button>
+      <p id="wallet-status">Wallet: Not connected</p>
+    </section>
+  </main>
 
-      <button class="btn" style="margin-top:1rem;" onclick="simulateWalletConnect()">
-        Connect Phantom Wallet
-      </button>
-      <p id="wallet-status" style="margin-top:1rem;">Wallet: Not connected</p>
-    </div>
-  </div>
-
-  <script>
-    function simulateWalletConnect() {
-      document.getElementById('wallet-status').innerText = "Wallet: Connected (Phantom - AbCd...XyZ)";
-      alert("Phantom Wallet Connected!");
-    }
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>
