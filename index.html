@@ -40,12 +40,13 @@
   <script>
     const API_BASE = 'https://trxtrnation-backend.onrender.com'; // Your backend URL
 
-    // Toggle forms
+    // Toggle between login and signup forms
     document.getElementById('switch-to-signup').addEventListener('click', e => {
       e.preventDefault();
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('signup-form').style.display = 'block';
     });
+
     document.getElementById('switch-to-login').addEventListener('click', e => {
       e.preventDefault();
       document.getElementById('signup-form').style.display = 'none';
@@ -68,9 +69,12 @@
         const data = await res.json();
 
         if (res.ok) {
-          alert('Account created! Redirecting to dashboard...');
+          // Save token and username locally
           localStorage.setItem('token', data.token);
-          window.location.href = '/dashboard.html'; // Redirect to dashboard
+          localStorage.setItem('username', data.username);
+
+          // Redirect to dashboard
+          window.location.href = 'dashboard.html';
         } else {
           alert(data.error);
         }
@@ -95,8 +99,10 @@
 
         if (res.ok) {
           localStorage.setItem('token', data.token);
-          alert('Login successful! Redirecting to dashboard...');
-          window.location.href = '/dashboard.html';
+          localStorage.setItem('username', data.username);
+
+          // Redirect to dashboard
+          window.location.href = 'dashboard.html';
         } else {
           alert(data.error);
         }
@@ -117,12 +123,14 @@
         const data = await res.json();
 
         if (res.ok) {
-          window.location.href = '/dashboard.html';
+          window.location.href = 'dashboard.html';
         } else {
           localStorage.removeItem('token');
+          localStorage.removeItem('username');
         }
       } catch (err) {
         localStorage.removeItem('token');
+        localStorage.removeItem('username');
       }
     });
   </script>
