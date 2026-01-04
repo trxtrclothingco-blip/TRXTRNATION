@@ -8,7 +8,7 @@
 </head>
 <body>
   <header>
-    <h1>TwistedTRXTR’s Community</h1>
+    <h1>TwistedTRXTR’s</h1>
   </header>
 
   <nav>
@@ -18,27 +18,29 @@
     <a href="marketplace.html">Marketplace</a>
   </nav>
 
-  <div class="container grid" style="grid-template-columns: 2fr 1fr;">
-    <div class="card">
+  <main class="container community-layout">
+    <section class="card chat-section">
       <h2>Live Chat</h2>
-      <div style="height:400px; overflow-y:scroll; background:rgba(0,0,0,0.3); padding:1rem;">
-        <p><strong>User1:</strong> Loving these twisted NFTs! 🔥</p>
-        <p><strong>User2:</strong> Just minted #005 <img src="https://thumbs.dreamstime.com/b/digital-man-vr-glasses-glitch-d-rendered-grunge-texture-abstract-tech-background-illustration-146006146.jpg" style="width:100px;"></p>
+      <div id="chat-feed" class="chat-feed">
+        <!-- Dynamic chat messages will be added here -->
       </div>
-      <input type="text" placeholder="Type message..." style="width:70%; padding:1rem;">
-      <button class="btn">Send</button>
-    </div>
+      <div class="chat-input">
+        <input type="text" id="chat-message" placeholder="Type message...">
+        <input type="file" id="chat-image" accept="image/*">
+        <button class="btn" onclick="postChatMessage()">Send</button>
+      </div>
+    </section>
 
-    <div>
-      <div class="card">
-        <h2>Leaderboard - Rarest NFTs</h2>
-        <ol>
-          <li>UserX - #001 (Rarity: Legendary)</li>
-          <li>UserY - #002 (Price: 10 SOL)</li>
-          <li>UserZ - #003 (Rarity: Epic)</li>
-        </ol>
-      </div>
-          </div>
-  </div>
+    <aside class="card leaderboard-section">
+      <h2>Leaderboard - Rarest NFTs</h2>
+      <ol>
+        <li><a href="#">UserX</a> - #001 (Legendary)</li>
+        <li><a href="#">UserY</a> - #002 (10 SOL)</li>
+        <li><a href="#">UserZ</a> - #003 (Epic)</li>
+      </ol>
+    </aside>
+  </main>
+
+  <script src="main.js"></script>
 </body>
 </html>
