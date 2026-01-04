@@ -3,38 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | TwistedTRXTR’s</title>
+  <title>Dashboard | TRXTR Nation</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@phantom/browser-sdk/dist/index.min.js"></script>
+
+  <!-- Solana + Phantom -->
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 </head>
 <body>
-  <header>
-    <h1>TwistedTRXTR’s</h1>
-  </header>
 
-  <nav>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="my-nfts.html">My NFTs</a>
-    <a href="community.html">Community</a>
-    <a href="marketplace.html">Marketplace</a>
-  </nav>
+<header>
+  <h1>TRXTR Nation</h1>
+  <button id="logout-btn" class="btn">Logout</button>
+</header>
 
-  <main class="container">
-    <section class="card profile-card">
-      <h2>Your Profile</h2>
-      <div class="profile-edit">
-        <img id="profile-pic" src="https://via.placeholder.com/150" alt="Profile Pic">
-        <input type="file" id="profile-upload" accept="image/*" onchange="updateProfilePic()">
-        <input type="text" id="profile-name" placeholder="Your Name">
-        <textarea id="profile-bio" placeholder="Your Bio"></textarea>
-        <button class="btn" onclick="saveProfile()">Save Profile</button>
-      </div>
-      <button class="btn wallet-btn" onclick="connectWallet()">Connect Phantom Wallet</button>
-      <p id="wallet-status">Wallet: Not connected</p>
-    </section>
-  </main>
+<nav>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="my-nfts.html">My NFTs</a>
+  <a href="marketplace.html">Marketplace</a>
+  <a href="community.html">Community</a>
+</nav>
 
-  <script src="main.js"></script>
+<main class="container">
+
+  <section class="card">
+    <h2>Wallet</h2>
+    <p id="wallet-status">Wallet: Not connected</p>
+    <button id="connect-wallet" class="btn">Connect Phantom Wallet</button>
+  </section>
+
+</main>
+
+<script>
+const API = "https://trxtrnation-backend.onrender.com";
+
+/* =====================
+   AUTH GUARD
+===================== */
+(async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const res = await fetch(`${API}/check`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!res.ok) {
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+  }
+})();
+
+/* =====================
+   LOGOUT
+===================== */
+document.getElementById("logout-btn").onclick = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("walletAddress");
+  window.location.href = "index.html";
+};
+
+/* =====================
+   PHANTOM WALLET
+===================== */
+const walletStatus = document.getElementById("wallet-status");
+const connectBtn = document.getElementById("connect-wallet");
+
+function getProvider() {
+  if ("solana" in window) {
+    const provider = window.solana;
+    if (provider.isPhantom) return provider;
+  }
+  return null;
+}
+
+connectBtn.onclick = async () => {
+  const provider = getProvider();
+
+  if (!provider) {
+    alert("Phantom Wallet not found. Please install Phantom.");
+    return;
+  }
+
+  try {
+    const resp = await provider.connect();
+    const address = resp.publicKey.toString();
+
+    localStorage.setItem("walletAddress", address);
+    walletStatus.innerText = `Wallet: Connected (${address.slice(0,6)}...${address.slice(-4)})`;
+  } catch (err) {
+    alert("Wallet connection failed");
+  }
+};
+
+/* =====================
+   LOAD WALLET IF SAVED
+===================== */
+const savedWallet = localStorage.getItem("walletAddress");
+if (savedWallet) {
+  walletStatus.innerText = `Wallet: Connected (${savedWallet.slice(0,6)}...${savedWallet.slice(-4)})`;
+}
+</script>
+
 </body>
 </html>
